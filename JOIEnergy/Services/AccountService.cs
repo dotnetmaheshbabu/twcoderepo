@@ -1,23 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using JOIEnergy.Enums;
+﻿using JOIEnergy.Data;
+using System.Linq;
 
 namespace JOIEnergy.Services
 {
     public class AccountService : IAccountService
     { 
-        private Dictionary<string, string> _smartMeterToPricePlanAccounts;
+        private readonly JOIEnergyDbContext _context;
 
-        public AccountService(Dictionary<string, string> smartMeterToPricePlanAccounts) {
-            _smartMeterToPricePlanAccounts = smartMeterToPricePlanAccounts;
+        public AccountService(JOIEnergyDbContext context) 
+        {
+            _context = context;
         }
 
-        public string GetPricePlanIdForSmartMeterId(string smartMeterId) {
-            if (!_smartMeterToPricePlanAccounts.ContainsKey(smartMeterId))
-            {
-                return null;
-            }
-            return _smartMeterToPricePlanAccounts[smartMeterId];
+        public string GetPricePlanIdForSmartMeterId(string smartMeterId) 
+        {
+            var account = _context.SmartMeterAccounts
+                .FirstOrDefault(a => a.SmartMeterId == smartMeterId);
+                
+            return account?.PricePlanId;
         }
     }
 }

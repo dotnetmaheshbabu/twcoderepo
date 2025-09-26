@@ -9,12 +9,12 @@ namespace JOIEnergy.Services
     {
         public interface Debug { void Log(string s); };
 
-        private readonly List<PricePlan> _pricePlans;
+        private readonly JOIEnergy.Data.JOIEnergyDbContext _context;
         private IMeterReadingService _meterReadingService;
 
-        public PricePlanService(List<PricePlan> pricePlan, IMeterReadingService meterReadingService)
+        public PricePlanService(JOIEnergy.Data.JOIEnergyDbContext context, IMeterReadingService meterReadingService)
         {
-            _pricePlans = pricePlan;
+            _context = context;
             _meterReadingService = meterReadingService;
         }
 
@@ -48,7 +48,15 @@ namespace JOIEnergy.Services
             {
                 return new Dictionary<string, decimal>();
             }
-            return _pricePlans.ToDictionary(plan => plan.PlanName, plan => calculateCost(electricityReadings, plan));
+            var pricePlans = _context.PricePlans.Select(p => new PricePlan
+            {
+                PlanName = p.PlanName,
+                EnergySupplier = (Enums.Supplier)p.EnergySupplier,
+                UnitRate = p.UnitRate,
+                PeakTimeMultiplier = new List<PeakTimeMultiplier>()
+            }).ToList();
+            
+            return pricePlans.ToDictionary(plan => plan.PlanName, plan => calculateCost(electricityReadings, plan));
         }
     }
 }
